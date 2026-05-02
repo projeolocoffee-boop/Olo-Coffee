@@ -101,96 +101,46 @@ if (backToTopBtn) {
 }
 
 // Product Data
-const products = [
-  {
-    id: 1,
-    category: 'espresso',
-    categoryName: 'Espresso',
-    title: 'Signature Blend',
-    desc: 'Karamel ve çikolata notaları ile yoğun ve gövdeli bir espresso deneyimi.',
-    price: 240,
-    image: 'https://images.unsplash.com/photo-1559525839-b184a4d698c7?auto=format&fit=crop&q=80&w=800',
-    calories: '5 kcal',
-    allergens: 'Yok'
-  },
-  {
-    id: 2,
-    category: 'filter',
-    categoryName: 'Filtre Kahve',
-    title: 'Colombia Supremo',
-    desc: 'Hafif asidite, narenciye ve fındık notaları. Dengeli bir içim sunar.',
-    price: 280,
-    image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=800',
-    calories: '5 kcal',
-    allergens: 'Yok'
-  },
-  {
-    id: 3,
-    category: 'cold',
-    categoryName: 'Soğuk İçecek',
-    title: 'Iced Matcha Latte',
-    desc: 'Orijinal Japon matcha tozu ve taze süt ile hazırlanan ferahlatıcı lezzet.',
-    price: 120,
-    image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=80&w=800',
-    calories: '180 kcal',
-    allergens: 'Laktoz'
-  },
-  {
-    id: 4,
-    category: 'filter',
-    categoryName: 'Filtre Kahve',
-    title: 'Ethiopia Yirgacheffe',
-    desc: 'Yasemin çiçeği ve bergamot notalarıyla ön plana çıkan, hafif gövdeli.',
-    price: 320,
-    image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&q=80&w=800',
-    calories: '5 kcal',
-    allergens: 'Yok'
-  },
-  {
-    id: 5,
-    category: 'espresso',
-    categoryName: 'Espresso',
-    title: 'Cortado',
-    desc: 'Eşit oranda espresso ve sıcak sütün mükemmel dengesi.',
-    price: 110,
-    image: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&q=80&w=800',
-    calories: '75 kcal',
-    allergens: 'Laktoz'
-  },
-  {
-    id: 6,
-    category: 'cold',
-    categoryName: 'Soğuk İçecek',
-    title: 'Cold Brew',
-    desc: '16 saat soğuk suda demlenmiş, yumuşak içimli buzlu kahve.',
-    price: 130,
-    image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&q=80&w=800',
-    calories: '10 kcal',
-    allergens: 'Yok'
-  },
-  {
-    id: 7,
-    category: 'dessert',
-    categoryName: 'Tatlı',
-    title: 'San Sebastian',
-    desc: 'İçi akışkan, üzeri karamelize edilmiş nefis peynir tatlısı.',
-    price: 180,
-    image: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&q=80&w=800',
-    calories: '420 kcal',
-    allergens: 'Laktoz, Yumurta, Glüten'
-  },
-  {
-    id: 8,
-    category: 'dessert',
-    categoryName: 'Tatlı',
-    title: 'Limonlu Cheesecake',
-    desc: 'Ferahlatıcı limon kremasıyla hazırlanan taze cheesecake.',
-    price: 160,
-    image: 'https://images.unsplash.com/photo-1508737027454-e6454ef45afd?auto=format&fit=crop&q=80&w=800',
-    calories: '380 kcal',
-    allergens: 'Laktoz, Yumurta, Glüten'
+// Product Data
+let products = [];
+let categories = [];
+
+// Fetch Data from Firestore
+async function fetchMenuData() {
+  try {
+    const db = firebase.firestore();
+    const doc = await db.collection('menu').doc('live').get();
+    
+    if (doc.exists) {
+      const data = doc.data();
+      categories = data.categories || [];
+      
+      // Map Firestore products to UI format
+      products = (data.products || [])
+        .filter(p => p.active !== false)
+        .map(p => {
+          const cat = categories.find(c => c.id === p.categoryId);
+          return {
+            id: p.id,
+            category: cat ? cat.nameEn.toLowerCase().replace(/\s+/g, '-') : 'other',
+            categoryName: cat ? cat.name : 'Diğer',
+            title: p.name,
+            desc: p.description,
+            price: p.price,
+            image: p.image,
+            calories: p.calories ? p.calories + ' kcal' : '—',
+            allergens: p.allergens || 'Yok'
+          };
+        });
+    } else {
+      console.log("No live menu found in database.");
+    }
+  } catch (error) {
+    console.error("Error fetching menu data:", error);
+  } finally {
+    renderProductsGrid();
   }
-];
+}
 
 // Modal Logic
 const modal = document.getElementById('productModal');
@@ -231,7 +181,7 @@ if (modalClose) {
 // Product Rendering
 function createProductCard(product) {
   return `
-    <div class="product-card" data-category="${product.category}" onclick="openModal(${product.id})">
+    <div class="product-card" data-category="${product.category}" onclick="openModal('${product.id}')">
       <div class="product-img-wrap">
         <img src="${product.image}" alt="${product.title}">
       </div>
@@ -246,24 +196,33 @@ function createProductCard(product) {
   `;
 }
 
-// Render on Products Page
+// Render Grid
 const productsGrid = document.getElementById('products-grid');
 const filterBtns = document.querySelectorAll('.filter-btn');
 
-if (productsGrid) {
-  productsGrid.innerHTML = products.map(p => createProductCard(p)).join('');
+function renderProductsGrid(filterValue = 'all') {
+  if (!productsGrid) return;
+  
+  const filteredProducts = filterValue === 'all' 
+    ? products 
+    : products.filter(p => p.category === filterValue || p.category.includes(filterValue));
+    
+  productsGrid.innerHTML = filteredProducts.map(p => createProductCard(p)).join('');
+}
 
+if (productsGrid) {
+  // Initialize Filter Listeners
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       filterBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-
       const filterValue = btn.getAttribute('data-filter');
-      const filteredProducts = filterValue === 'all' 
-        ? products 
-        : products.filter(p => p.category === filterValue);
-        
-      productsGrid.innerHTML = filteredProducts.map(p => createProductCard(p)).join('');
+      renderProductsGrid(filterValue);
     });
   });
+
+  // Fetch initial data
+  if (typeof firebase !== 'undefined') {
+    fetchMenuData();
+  }
 }
