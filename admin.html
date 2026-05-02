@@ -901,55 +901,34 @@ if (window.MUZOM_AUTH) {
   document.getElementById('app').style.display = 'none';
 }
 
-const ADMIN_EMAIL = 'admin@muzom.com';
+const ADMIN_EMAIL = 'proje.olocoffee@gmail.com';
 
 async function doLogin() {
-  const pass  = document.getElementById('li-pass').value.trim().toLowerCase();
+  const pass  = document.getElementById('li-pass').value.trim();
   const btn   = document.querySelector('.btn-login');
   const errEl = document.getElementById('login-error');
   
   errEl.textContent = '';
   if (!pass) { errEl.textContent = 'Şifre girin.'; return; }
   
-  // Custom bypass for development
-  if (pass === 'olocoffee') {
-    try {
-      currentUser = { email: ADMIN_EMAIL };
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-      
-      // Mock DB if offline
-      if (!window.MUZOM_DB) {
-        window.MUZOM_DB = {
-          doc: () => ({ 
-            get: async () => ({ exists: false }), 
-            set: async () => {} 
-          })
-        };
-        if (!window.MUZOM_MENU_DATA) {
-            window.MUZOM_MENU_DATA = { categories: [], products: [] };
-        }
-      }
-      
-      await loadFromDb();
-    } catch(e) {
-      console.error("Login bypass failed:", e);
-      alert("Sisteme giriş yapılırken bir hata oluştu: " + e.message);
-    }
-    return;
-  }
-  
   // Anti-Brute Force Delay & UX
   btn.disabled = true;
   btn.textContent = 'Doğrulanıyor...';
   
   try {
-    if (!window.MUZOM_AUTH) throw new Error("Firebase bağlantısı yok. Lütfen 'olocoffee' şifresi ile çevrimdışı giriş yapın.");
-    await new Promise(r => setTimeout(r, 1000));
-    await window.MUZOM_AUTH.signInWithEmailAndPassword(ADMIN_EMAIL, document.getElementById('li-pass').value);
+    if (!window.MUZOM_AUTH) throw new Error("Firebase bağlantısı kurulamadı. Lütfen internet bağlantınızı kontrol edin.");
+    
+    // Attempt real login via Firebase Auth
+    await window.MUZOM_AUTH.signInWithEmailAndPassword(ADMIN_EMAIL, pass);
     resetInactivityTimer();
   } catch(e) {
-    errEl.textContent = e.message || 'Giriş başarısız.';
+    console.error("Login failed:", e);
+    let msg = 'Giriş başarısız.';
+    if (e.code === 'auth/wrong-password') msg = 'Hatalı şifre.';
+    if (e.code === 'auth/user-not-found') msg = 'Yönetici hesabı bulunamadı.';
+    if (e.code === 'auth/too-many-requests') msg = 'Çok fazla deneme yapıldı. Lütfen biraz bekleyin.';
+    
+    errEl.textContent = msg;
     btn.disabled = false;
     btn.textContent = 'Giriş Yap';
   }
