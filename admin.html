@@ -959,8 +959,9 @@ function doLogout() {
    DATABASE LOAD / SAVE
 ═══════════════════════════════════════════════ */
 async function loadFromDb() {
+  let snap;
   try {
-    const snap = await window.MUZOM_DB.doc('menu/live').get();
+    snap = await window.MUZOM_DB.doc('menu/live').get();
     if (snap.exists) {
       const d = snap.data();
       dataCache.categories = d.categories || [];
@@ -986,15 +987,13 @@ async function loadFromDb() {
   
   populateSettings();
   renderDashboard();
-    renderCategoryList();
-    renderProducts();
-    renderCategorySelects();
-    if (snap.exists && snap.data().updatedAt) {
-      const d = new Date(snap.data().updatedAt.seconds * 1000);
-      document.getElementById('db-last-update').textContent = d.toLocaleString('tr-TR');
-    }
-  } catch(e) {
-    showToast('Veritabanı yüklenemedi: ' + e.message, 'error');
+  renderCategoryList();
+  renderProducts();
+  renderCategorySelects();
+
+  if (snap && snap.exists && snap.data().updatedAt) {
+    const d = new Date(snap.data().updatedAt.seconds * 1000);
+    document.getElementById('db-last-update').textContent = d.toLocaleString('tr-TR');
   }
 }
 
