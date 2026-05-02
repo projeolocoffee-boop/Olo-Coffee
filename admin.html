@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Olo Coffee — Yönetim Paneli</title>
+  <meta name="description" content="Olo Coffee — Menü ve içerik yönetim paneli.">
+  <meta name="robots" content="noindex, nofollow">
+  <!-- Content Security Policy: Basic protection -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.gstatic.com https://*.firebaseio.com https://*.googleapis.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://*.gstatic.com https://*.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:;">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Firebase v9 compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="menu-data.js"></script>
+  
+  <style>
+  /* ── Reset & Base ─────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:    #111114;
+    --bg-2:  #17171c;
+    --bg-3:  #1e1e25;
+    --bg-4:  #28282f;
+    --bg-5:  #33333c;
+    --acc:   #2B4C3B;
+    --acc-2: #1A3125;
+    --text:  #e8e6e1;
+    --muted: #888898;
+    --danger:#e05a5a;
+    --success:#5ab87a;
+    --radius: 10px;
+    --shadow: 0 4px 24px rgba(0,0,0,.45);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  body { background: var(--bg); color: var(--text); min-height: 100vh; }
+  
+  /* Navigation is always at the bottom */
+  #bottom-nav { width: 100% !important; height: 74px !important; left: 0 !important; right: 0 !important; bottom: 0 !important; top: auto !important; flex-direction: row !important; background: #141418; border-top: 1px solid var(--bg-4); border-right: none; }
+  #top-header { left: 0 !important; width: 100% !important; }
+  #main-content { padding-left: 16px !important; max-width: 1400px; width: 90%; }
+  .sidebar-toggle { display: none !important; }
+  
+  /* ── Sidebar CSS Adjustment ──────────────────────────── */
+  @media (min-width: 1024px) {
+    #bottom-nav { 
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+  
+  /* ── Saving Badge ─────────────────────────────────────── */
+#saving-badge {
+  position: fixed; top: 16px; right: 16px; z-index: 9999;
+  background: var(--acc); color: #111; font-size: .78rem; font-weight: 600;
+  padding: 6px 14px; border-radius: 20px; display: none;
+  box-shadow: 0 2px 12px rgba(201,169,110,.4);
+  animation: fadein .2s ease;
+}
+#saving-badge.show { display: flex; align-items: center; gap: 6px; }
+@keyframes fadein { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform: translateY(0); } }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(201,169,110,0.2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--acc); }
+* { scrollbar-width: thin; scrollbar-color: rgba(201,169,110,0.2) transparent; }
+
+/* ── Login Screen ─────────────────────────────────────── */
+#login-screen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 24px;
+}
+.login-card {
+  background: var(--bg-2); border: 1px solid var(--bg-4);
+  border-radius: 16px; padding: 48px 40px; width: 100%; max-width: 420px;
+  box-shadow: var(--shadow);
+}
+.login-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.2rem; font-weight: 700; color: var(--acc);
+  text-align: center; margin-bottom: 6px; letter-spacing: .04em;
+}
+.login-sub {
+  text-align: center; color: var(--muted); font-size: .85rem;
+  margin-bottom: 36px;
+}
+.login-card label { display: block; font-size: .8rem; color: var(--muted); margin-bottom: 6px; }
+.login-card input {
+  width: 100%; background: var(--bg-3); border: 1px solid var(--bg-5);
+  color: var(--text); border-radius: var(--radius); padding: 11px 14px;
+  font-size: .95rem; font-family: inherit; margin-bottom: 18px;
+  transition: border-color .2s;
+}
+.login-card input:focus { outline: none; border-color: var(--acc); }
+.login-card .btn-login {
+  width: 100%; background: var(--acc); color: #111; border: none;
+  border-radius: var(--radius); padding: 13px; font-size: 1rem;
+  font-weight: 600; font-family: inherit; cursor: pointer; transition: background .2s;
+}
+.login-card .btn-login:hover { background: var(--acc-2); }
+#login-error {
+  color: var(--danger); font-size: .82rem; text-align: center;
+  margin-top: 12px; min-height: 20px;
+}
+
+/* ── App Shell ────────────────────────────────────────── */
+#app { display: none; }
+
+/* Top Header */
+#top-header {
+  position: fixed; top: 0; left: 0; right: 0; height: 64px;
+  background: var(--bg); border-bottom: 1px solid var(--bg-4);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; z-index: 1000; transition: left 0.3s;
+}
+.h-left { display: flex; align-items: center; gap: 15px; }
+.sidebar-toggle {
+  display: none; width: 40px; height: 40px; align-items: center; justify-content: center;
+  background: var(--bg-3); border: 1px solid var(--bg-4); color: var(--acc);
+  border-radius: 10px; cursor: pointer; transition: all 0.2s;
+}
+.sidebar-toggle:hover { background: var(--bg-4); }
+
+.nav-logo {
+  display: flex; align-items: center;
+}
+.nav-logo img {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+.h-logo { display: none; }
+.h-badge {
+  background: var(--bg-3); color: var(--acc); font-size: 0.62rem;
+  font-weight: 700; padding: 3px 8px; border-radius: 4px;
+  letter-spacing: 0.08em; border: 1px solid rgba(201,169,110,0.15);
+  text-transform: uppercase;
+}
+.h-right { display: flex; align-items: center; gap: 10px; }
+.h-btn {
+  width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+  background: var(--bg-2); border: 1px solid var(--bg-4); color: var(--muted);
+  border-radius: 8px; cursor: pointer; transition: all 0.2s; text-decoration: none;
+}
+.h-btn:hover { border-color: var(--acc); color: var(--acc); background: var(--bg-3); }
+.h-btn i { font-size: 1rem; }
+
+/* Sidebar */
+#bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 74px;
+  background: #141418; border-top: 1px solid var(--bg-4);
+  display: flex; align-items: center; justify-content: space-around;
+  padding: 0 10px; z-index: 1000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; background: none; border: none; color: var(--muted);
+  font-size: 0.75rem; font-family: inherit; cursor: pointer; transition: all 0.2s;
+  padding: 10px; border-radius: 12px;
+}
+.nav-item i { font-size: 1.25rem; }
+.nav-item.active { color: var(--acc); background: rgba(201,169,110,0.05); }
+.nav-item:hover { color: var(--text); background: rgba(255,255,255,0.02); }
+
+  #top-header { left: 0; width: 100%; background: rgba(17,17,20,0.85); backdrop-filter: blur(14px); }
+  #main-content { padding-left: 16px; padding-top: 100px; margin: 0 auto; max-width: 1400px; width: 95%; transition: none; }
+
+  #bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 74px;
+    background: #141418; border-top: 1px solid var(--bg-4);
+    display: flex; align-items: center; justify-content: space-around;
+    padding: 0 10px; z-index: 1000;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; background: none; border: none; color: var(--muted);
+    font-size: 0.75rem; font-family: inherit; cursor: pointer; transition: all 0.2s;
+    padding: 10px; border-radius: 12px;
+  }
+  .nav-item i { font-size: 1.25rem; }
+  .nav-item.active { color: var(--acc); background: rgba(201,169,110,0.05); }
+
+/* Main content */
+#main-content {
+  padding: 84px 16px 120px; /* Alttaki nav bar için ekstra boşluk */
+  min-height: 100vh; max-width: 1200px; margin: 0 auto;
+  transition: padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.section-grid {
+  display: grid; grid-template-columns: 1fr; gap: 24px;
+}
+@media (min-width: 900px) {
+  .section-grid { grid-template-columns: repeat(2, 1fr); align-items: start; }
+  /* Products section should stay wider */
+  #sec-products .section-grid { grid-template-columns: 1fr; }
+  .grid-full { grid-column: 1 / -1; }
+}
+
+/* Section cards */
+.section { display: none; }
+.section.active { display: block; }
+/* Stat cards (List style) */
+.dash-header { margin-bottom: 28px; }
+.dash-header h1 { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; color: var(--text); margin-bottom: 4px; }
+.dash-header p { color: var(--muted); font-size: 0.95rem; }
+
+.stat-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.stat-item {
+  background: #141418; border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px; padding: 24px 20px; display: flex; align-items: center; gap: 20px;
+}
+.stat-icon {
+  width: 48px; height: 48px; border-radius: 50%; background: rgba(201,169,110,0.1);
+  color: var(--acc); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+}
+.stat-content { display: flex; flex-direction: column; }
+.stat-value { font-family: 'Cormorant Garamond', serif; font-size: 2.1rem; font-weight: 700; color: var(--acc); line-height: 1; }
+.stat-name { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+
+/* Info card */
+.info-card {
+  background: #141418; border: 1px solid var(--acc); border-left-width: 4px;
+  border-radius: 8px; padding: 20px; display: flex; gap: 16px; margin-bottom: 24px;
+}
+.info-card i { color: var(--acc); font-size: 1.4rem; margin-top: 2px; }
+.info-card strong { display: block; color: var(--text); font-size: 0.95rem; margin-bottom: 4px; }
+.info-card span { color: var(--muted); font-size: 0.84rem; line-height: 1.5; }
+
+/* Panel card */
+.panel {
+  background: var(--bg-2); border: 1px solid var(--bg-4);
+  border-radius: var(--radius); padding: 26px; margin-bottom: 24px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: transform 0.2s, box-shadow 0.2s;
+}
+.panel:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.25); }
+.panel-title {
+  font-size: 1rem; font-weight: 600; color: var(--text);
+  margin-bottom: 18px; display: flex; align-items: center;
+  justify-content: space-between; gap: 10px;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 18px; border-radius: var(--radius);
+  font-family: inherit; font-size: .85rem; font-weight: 500;
+  cursor: pointer; border: none; transition: background .15s, opacity .15s;
+}
+.btn-primary { background: var(--acc); color: #111; }
+.btn-primary:hover { background: var(--acc-2); }
+.btn-secondary { background: var(--bg-4); color: var(--text); }
+.btn-secondary:hover { background: var(--bg-5); }
+.btn-danger { background: rgba(224,90,90,.15); color: var(--danger); }
+.btn-danger:hover { background: rgba(224,90,90,.3); }
+.btn-sm { padding: 5px 12px; font-size: .78rem; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+
+/* Forms */
+.form-group { margin-bottom: 16px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-label {
+  display: block; font-size: .78rem; color: var(--muted);
+  margin-bottom: 5px; font-weight: 500;
+}
+.form-input, .form-select, .form-textarea {
+  width: 100%; background: var(--bg-3); border: 1px solid var(--bg-5);
+  color: var(--text); border-radius: var(--radius); padding: 10px 13px;
+  font-size: .9rem; font-family: inherit; transition: border-color .2s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none; border-color: var(--acc);
+}
+.form-select option { background: var(--bg-3); }
+.form-textarea { resize: vertical; min-height: 70px; }
+
+/* Custom File Input */
+.file-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 16px; background: var(--bg-4); color: var(--text);
+  border-radius: var(--radius); cursor: pointer; font-size: 0.82rem;
+  font-weight: 500; border: 1px solid var(--bg-5); transition: all 0.2s;
+}
+.file-label:hover { background: var(--bg-5); border-color: var(--acc); }
+.file-label i { color: var(--acc); }
+.form-input[type="file"] { display: none; }
+
+/* Toggle */
+.toggle-wrap { display: flex; align-items: center; gap: 10px; }
+.toggle {
+  position: relative; width: 40px; height: 22px;
+  cursor: pointer; display: inline-block;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0; background: var(--bg-5);
+  border-radius: 11px; transition: .2s;
+}
+.toggle-slider::before {
+  content: ''; position: absolute; width: 16px; height: 16px;
+  left: 3px; top: 3px; background: #fff; border-radius: 50%;
+  transition: .2s;
+}
+.toggle input:checked + .toggle-slider { background: var(--acc); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+.toggle-label { font-size: .85rem; color: var(--text); }
+
+/* Image preview */
+.img-preview-wrap {
+  width: 100%; aspect-ratio: 4/3; border-radius: var(--radius);
+  overflow: hidden; background: var(--bg-3);
+  border: 1px dashed var(--bg-5); margin-bottom: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+.img-preview-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.img-placeholder { color: var(--muted); font-size: .82rem; text-align: center; }
+.img-mode-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+.img-mode-tab {
+  flex: 1; padding: 7px; border-radius: 8px; font-size: .78rem;
+  font-family: inherit; cursor: pointer; border: 1px solid var(--bg-5);
+  background: var(--bg-3); color: var(--muted); transition: .15s;
+  text-align: center;
+}
+.img-mode-tab.active { background: var(--acc); color: #111; border-color: var(--acc); font-weight: 600; }
+.img-mode-panel { display: none; }
+.img-mode-panel.active { display: block; }
+
+/* Category + Product list items */
+.list-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px; background: var(--bg-3);
+  border: 1px solid var(--bg-4); border-radius: var(--radius);
+  margin-bottom: 8px; cursor: default;
+}
+.list-item .drag-handle {
+  color: var(--muted); cursor: grab; font-size: .9rem;
+  touch-action: none;
+}
+.list-item .item-label { flex: 1; font-size: .9rem; }
+.list-item .item-actions { display: flex; gap: 6px; }
+
+/* Product list items (Classic List View) */
+.prod-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 14px; background: var(--bg-2);
+  border: 1px solid var(--bg-4); border-radius: var(--radius);
+  margin-bottom: 12px; transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+@media (max-width: 500px) {
+  .prod-item { gap: 10px; padding: 10px; }
+  .prod-thumb { width: 60px; height: 45px; }
+  .prod-name { font-size: 0.95rem; }
+  .prod-price { margin: 0 5px; font-size: 1.1rem; }
+}
+.prod-item:hover {
+  border-color: var(--acc);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.prod-thumb {
+  width: 80px; height: 60px; border-radius: 8px; object-fit: cover;
+  background: var(--bg-4); flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.prod-info { flex: 1; min-width: 0; }
+.prod-name { font-size: 1.05rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.prod-meta { font-size: 0.8rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.prod-price { font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; color: var(--acc); font-weight: 700; white-space: nowrap; margin: 0 15px; }
+.prod-inactive { opacity: .6; background: #1a1a1f; border-style: dashed; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .75rem; font-weight: 600; }
+.badge-active { background: rgba(90,184,122,.15); color: var(--success); }
+.badge-inactive { background: rgba(224,90,90,.12); color: var(--danger); }
+
+/* Filter bar */
+.filter-bar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
+.filter-bar .form-input { flex: 1; min-width: 200px; }
+.filter-bar .form-select { width: auto; min-width: 160px; }
+
+/* Modal */
+.modal-backdrop {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.75); z-index: 500;
+  align-items: center; justify-content: center; padding: 20px;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--bg-2); border: 1px solid var(--bg-4);
+  border-radius: 14px; width: 100%; max-width: 600px;
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 8px 48px rgba(0,0,0,.6);
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px 16px; border-bottom: 1px solid var(--bg-4);
+}
+.modal-header h2 { font-size: 1.1rem; font-weight: 600; }
+.modal-close {
+  background: none; border: none; color: var(--muted);
+  font-size: 1.2rem; cursor: pointer; padding: 4px;
+  transition: color .15s;
+}
+.modal-close:hover { color: var(--text); }
+.modal-body { padding: 20px 24px; }
+.modal-footer {
+  padding: 14px 24px 20px; border-top: 1px solid var(--bg-4);
+  display: flex; justify-content: flex-end; gap: 10px;
+}
+
+/* Toast */
+#toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9000;
+  background: var(--bg-4); color: var(--text); padding: 12px 20px;
+  border-radius: 10px; font-size: .87rem; box-shadow: var(--shadow);
+  transform: translateY(20px); opacity: 0;
+  transition: .25s; pointer-events: none; max-width: 300px;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.toast-success { border-left: 3px solid var(--success); }
+#toast.toast-error   { border-left: 3px solid var(--danger); }
+
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 600px) { 
+  .settings-grid { grid-template-columns: 1fr; }
+  .h-badge { display: none; }
+  .nav-logo img { height: 32px; }
+  .h-left { gap: 10px; }
+  .h-right { gap: 6px; }
+  .h-btn { width: 34px; height: 34px; }
+  #top-header { padding: 0 12px; }
+}
+.cat-group-title {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; background: rgba(201,169,110,0.05);
+  border-left: 3px solid var(--acc); color: var(--acc);
+  font-weight: 600; font-size: 0.85rem; margin-bottom: 12px;
+  border-radius: 4px; border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+.db-status-box { display: flex; align-items: center; gap: 8px; font-size: .85rem; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+.dot.disconnected { background: var(--danger); }
+
+/* Responsive */
+@media (max-width: 600px) {
+  #main-content { padding: 74px 16px 90px; }
+  .form-row { grid-template-columns: 1fr; }
+}
+
+/* Drag ghost */
+.dragging { opacity: .4; }
+</style>
+</head>
+<body>
+
+<!-- Saving Badge -->
+<div id="saving-badge"><i class="fa fa-cloud-upload-alt"></i> Kaydediliyor…</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- ════════════════════════════════════════════
+     LOGIN SCREEN
+════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">Olo Coffee</div>
+    <div class="login-sub">Yönetim Paneli</div>
+    <label for="li-pass">Şifre</label>
+    <input type="password" id="li-pass" placeholder="••••••••" autocomplete="current-password"
+           onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn-login" onclick="doLogin()">Giriş Yap</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     APP
+════════════════════════════════════════════ -->
+<div id="app">
+  <!-- Top Header -->
+  <header id="top-header">
+    <div class="h-left">
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Menüyü Daralt/Aç">
+        <i class="fa fa-bars"></i>
+      </button>
+      <a href="index.html" class="nav-logo" style="font-family:'Cormorant Garamond',serif; font-size:1.5rem; font-weight:700; color:var(--acc);">
+        Olo Coffee.
+      </a>
+      <span class="h-badge">ADMİN</span>
+    </div>
+    <div class="h-right">
+      <a href="index.html" class="h-btn" title="Anasayfa"><i class="fa fa-home"></i></a>
+      <a href="menu.html" target="_blank" class="h-btn" title="Menüyü Gör"><i class="fa fa-external-link-alt"></i></a>
+      <button class="h-btn" onclick="doLogout()" title="Çıkış"><i class="fa fa-sign-out-alt"></i></button>
+    </div>
+  </header>
+
+  <!-- Bottom Nav -->
+  <nav id="bottom-nav">
+    <button class="nav-item active" data-sec="dashboard" onclick="showSection('dashboard')">
+      <i class="fa fa-chart-bar"></i>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-item" data-sec="categories" onclick="showSection('categories')">
+      <i class="fa fa-layer-group"></i>
+      <span>Kategoriler</span>
+    </button>
+    <button class="nav-item" data-sec="products" onclick="showSection('products')">
+      <i class="fa fa-utensils"></i>
+      <span>Ürünler</span>
+    </button>
+    <button class="nav-item" data-sec="settings" onclick="showSection('settings')">
+      <i class="fa fa-cog"></i>
+      <span>Ayarlar</span>
+    </button>
+  </nav>
+
+  <!-- Main -->
+  <main id="main-content">
+
+    <!-- ── Dashboard ──────────────────────────────── -->
+    <div class="section active" id="sec-dashboard">
+      <div class="section-grid">
+        <div class="grid-full">
+          <h1>Genel Bakış</h1>
+          <p>Menü yönetim paneline hoş geldiniz</p>
+        </div>
+
+        <div class="stat-list grid-full" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-bottom:0;">
+          <div class="stat-item">
+            <div class="stat-icon"><i class="fa fa-layer-group"></i></div>
+            <div class="stat-content">
+              <div class="stat-value" id="stat-cats">0</div>
+              <div class="stat-name">Kategori</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon"><i class="fa fa-utensils"></i></div>
+            <div class="stat-content">
+              <div class="stat-value" id="stat-prods">0</div>
+              <div class="stat-name">Toplam Ürün</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon"><i class="fa fa-eye"></i></div>
+            <div class="stat-content">
+              <div class="stat-value" id="stat-active">0</div>
+              <div class="stat-name">Aktif Ürün</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon"><i class="fa fa-eye-slash"></i></div>
+            <div class="stat-content">
+              <div class="stat-value" id="stat-inactive">0</div>
+              <div class="stat-name">Pasif Ürün</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card grid-full">
+          <i class="fa fa-info-circle"></i>
+          <div>
+            <strong>Nasıl çalışır?</strong>
+            <span>Yaptığınız değişiklikler bulut veritabanına kaydedilir ve tüm menü sayfalarına anında yansır.</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Hızlı Erişim</div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="showSection('categories')"><i class="fa fa-folder-plus"></i> Kategori Ekle</button>
+            <button class="btn btn-primary" onclick="openProductModal()"><i class="fa fa-plus"></i> Ürün Ekle</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Veritabanı Durumu</div>
+          <div style="font-size:.85rem; color:var(--muted); margin-bottom: 8px;">Son Güncelleme: <span id="db-last-update" style="color:var(--text)">—</span></div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div id="db-dot-dash" class="dot"></div>
+            <span id="db-status-text-dash" style="font-size:.78rem; color:var(--muted)">Bağlı — Veritabanı çalışıyor</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Categories ─────────────────────────────── -->
+    <div class="section" id="sec-categories">
+      <div class="section-grid">
+        <div class="grid-full">
+          <h1>Kategoriler</h1>
+          <p>Menü gruplarını yönetin</p>
+        </div>
+
+      <!-- Add category -->
+      <div class="panel">
+        <div class="panel-title">Kategori Ekle</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Kategori Adı (TR)</label>
+            <input class="form-input" id="new-cat-name" placeholder="Örn: Mezeler">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kategori Adı (EN)</label>
+            <input class="form-input" id="new-cat-name-en" placeholder="Örn: Appetizers">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="addCategory()"><i class="fa fa-plus"></i> Ekle</button>
+      </div>
+
+      <!-- Category list -->
+      <div class="panel">
+        <div class="panel-title">
+          Mevcut Kategoriler
+          <span style="font-size:.75rem; color:var(--muted); font-weight:400;">Sıralamak için sürükleyin</span>
+        </div>
+        <div id="cat-list"></div>
+      </div>
+      </div>
+    </div>
+
+    <!-- ── Products ───────────────────────────────── -->
+    <div class="section" id="sec-products">
+      <div class="section-grid">
+        <div class="grid-full">
+          <h1>Ürünler</h1>
+          <p>Menü kalemlerini detaylı yönetin</p>
+        </div>
+        <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+          <button class="btn btn-primary" onclick="openProductModal()"><i class="fa fa-plus"></i> Yeni Ürün</button>
+        </div>
+        <div class="filter-bar">
+          <div style="position:relative; flex:1;">
+            <i class="fa fa-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:0.9rem;"></i>
+            <input class="form-input" id="prod-search" placeholder="İsim, açıklama ile ürün ara…" oninput="renderProducts()" style="padding-left:35px;">
+          </div>
+          <select class="form-select" id="prod-filter-cat" onchange="renderProducts()">
+            <option value="">Tüm Kategoriler</option>
+          </select>
+          <select class="form-select" id="prod-filter-active" onchange="renderProducts()">
+            <option value="">Tüm Durum</option>
+            <option value="1">Aktif</option>
+            <option value="0">Pasif</option>
+          </select>
+          <select class="form-select" id="prod-sort" onchange="renderProducts()">
+            <option value="order">Özel Sıralama</option>
+            <option value="name-asc">A → Z (İsim)</option>
+            <option value="name-desc">Z → A (İsim)</option>
+            <option value="price-asc">Fiyat (Düşük → Yüksek)</option>
+            <option value="price-desc">Fiyat (Yüksek → Düşük)</option>
+          </select>
+        </div>
+        <div id="prod-list"></div>
+      </div>
+    </div>
+
+    <!-- ── Settings ───────────────────────────────── -->
+    <div class="section" id="sec-settings">
+      <div class="section-grid">
+        <div class="grid-full">
+          <h1>Ayarlar</h1>
+          <p>Uygulama genel ayarları ve güvenlik</p>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Restoran Bilgileri</div>
+          <div class="form-group">
+            <label class="form-label">Restoran Adı</label>
+            <input class="form-input" id="set-name" value="Olo Coffee">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Alt Başlık (TR)</label>
+            <input class="form-input" id="set-subtitle" value="Premium Artisan Roastery">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Alt Başlık (EN)</label>
+            <input class="form-input" id="set-subtitle-en" value="Premium Artisan Roastery">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Para Birimi Sembolü</label>
+            <input class="form-input" id="set-currency" value="₺">
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()"><i class="fa fa-save"></i> Kaydet</button>
+        </div>
+      <div class="panel">
+        <div class="panel-title">Veritabanı Bağlantısı</div>
+        <div class="db-status-box">
+          <span class="dot" id="db-dot"></span>
+          <span id="db-status-text">Kontrol ediliyor…</span>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Şifre ve Güvenlik</div>
+        <div class="form-group">
+          <label class="form-label">Mevcut Şifre</label>
+          <input type="password" id="set-curr-pass" class="form-input" placeholder="Güvenlik için mevcut şifreniz">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Yeni Şifre</label>
+          <input type="password" id="set-new-pass" class="form-input" placeholder="Yeni şifreniz (En az 6 karakter)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Şifre Onay</label>
+          <input type="password" id="set-new-pass-confirm" class="form-input" placeholder="Yeni şifrenizi tekrar girin">
+        </div>
+        <button class="btn btn-secondary" onclick="updateAdminPassword()"><i class="fa fa-key"></i> Şifreyi Güncelle</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title" style="color:var(--danger);">Tehlikeli Alan</div>
+        <p style="font-size:.83rem; color:var(--muted); margin-bottom:14px;">
+          Veritabanındaki tüm menü verisini varsayılan değerlere sıfırlar. Geri alınamaz.
+        </p>
+        <button class="btn btn-danger" onclick="resetToDefaults()"><i class="fa fa-undo"></i> Varsayılana Sıfırla</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════════
+     PRODUCT MODAL
+════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="prod-modal-backdrop">
+  <div class="modal" id="prod-modal">
+    <div class="modal-header">
+      <h2 id="prod-modal-title">Ürün Ekle</h2>
+      <button class="modal-close" onclick="closeProductModal()"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pm-id">
+
+      <!-- Image -->
+      <div class="form-group">
+        <label class="form-label">Görsel</label>
+        <div class="img-preview-wrap" id="pm-img-preview-wrap">
+          <div class="img-placeholder"><i class="fa fa-image fa-2x" style="margin-bottom:6px; display:block"></i>Görsel yok</div>
+        </div>
+        <div class="img-mode-tabs">
+          <div class="img-mode-tab active" onclick="setImgMode('upload')">Dosya Yükle</div>
+          <div class="img-mode-tab" onclick="setImgMode('url')">URL</div>
+          <div class="img-mode-tab" onclick="setImgMode('local')">Yerel Dosya</div>
+        </div>
+        <div class="img-mode-panel active" id="img-panel-upload">
+          <label class="file-label" for="pm-file">
+            <i class="fa fa-upload"></i> Görsel Yükle
+          </label>
+          <input type="file" id="pm-file" accept="image/*" onchange="handleFile(this)" style="display:none">
+        </div>
+        <div class="img-mode-panel" id="img-panel-url">
+          <input class="form-input" id="pm-url" placeholder="https://…" oninput="previewUrl(this.value)">
+        </div>
+        <div class="img-mode-panel" id="img-panel-local">
+          <select class="form-select" id="pm-local" onchange="previewUrl(this.value)">
+            <option value="">— Dosya seç —</option>
+            <option value="assets/images/food/meze-plate.png">meze-plate.png</option>
+            <option value="assets/images/food/outdoor-salad.png">outdoor-salad.png</option>
+            <option value="assets/images/food/raki-glasses.png">raki-glasses.png</option>
+            <option value="assets/images/food/kebab.png">kebab.png</option>
+            <option value="assets/images/food/baklava.png">baklava.png</option>
+            <option value="assets/images/food/soup.png">soup.png</option>
+          </select>
+        </div>
+        <input type="hidden" id="pm-image-val">
+      </div>
+
+      <!-- Name row -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Ürün Adı (TR) <span style="color:var(--danger)">*</span></label>
+          <input class="form-input" id="pm-name" placeholder="Örn: Humus">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ürün Adı (EN)</label>
+          <input class="form-input" id="pm-name-en" placeholder="Örn: Hummus">
+        </div>
+      </div>
+
+      <!-- Category + Price + Calories row -->
+      <div class="form-row" style="grid-template-columns: 2fr 1fr 1fr;">
+        <div class="form-group">
+          <label class="form-label">Kategori <span style="color:var(--danger)">*</span></label>
+          <select class="form-select" id="pm-cat"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fiyat (₺)</label>
+          <input class="form-input" type="number" id="pm-price" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:5px;">
+            <label class="form-label" style="margin-bottom:0;">Kalori (kcal)</label>
+            <button class="btn btn-sm btn-secondary" onclick="autoCalcCalories()" style="padding:2px 8px; font-size:10px;" title="Gramaja göre hesapla">
+              <i class="fa fa-calculator"></i> Hesapla
+            </button>
+          </div>
+          <input class="form-input" type="number" id="pm-calories" placeholder="—" min="0">
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Açıklama (TR)</label>
+          <textarea class="form-textarea" id="pm-desc" placeholder="Malzemeler, notlar…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Açıklama (EN)</label>
+          <textarea class="form-textarea" id="pm-desc-en" placeholder="Ingredients, notes…"></textarea>
+        </div>
+      </div>
+
+      <!-- Active toggle -->
+      <div class="form-group">
+        <div class="toggle-wrap">
+          <label class="toggle">
+            <input type="checkbox" id="pm-active" checked>
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">Aktif (menüde göster)</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeProductModal()">İptal</button>
+      <button class="btn btn-primary" onclick="saveProduct()"><i class="fa fa-save"></i> Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     CATEGORY RENAME MODAL
+════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="cat-modal-backdrop">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <h2>Kategori Düzenle</h2>
+      <button class="modal-close" onclick="closeCatModal()"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cm-id">
+      <div class="form-group">
+        <label class="form-label">Ad (TR)</label>
+        <input class="form-input" id="cm-name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ad (EN)</label>
+        <input class="form-input" id="cm-name-en">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeCatModal()">İptal</button>
+      <button class="btn btn-primary" onclick="saveCatEdit()"><i class="fa fa-save"></i> Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Canvas for compression -->
+<canvas id="compress-canvas" style="display:none;"></canvas>
+
+<script>
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
+let dataCache = { categories: [], products: [], settings: {} };
+let currentUser = null;
+let imgMode = 'upload';
+
+/* ═══════════════════════════════════════════════
+   AUTH
+═══════════════════════════════════════════════ */
+if (window.MUZOM_AUTH) {
+  window.MUZOM_AUTH.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+    .then(() => {
+      window.MUZOM_AUTH.onAuthStateChanged(user => {
+        if (user) {
+          currentUser = user;
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('app').style.display = 'block';
+          loadFromDb();
+          // UI Check
+          setInterval(checkDbStatus, 30000);
+          checkDbStatus();
+        } else {
+          currentUser = null;
+          document.getElementById('login-screen').style.display = 'flex';
+          document.getElementById('app').style.display = 'none';
+        }
+      });
+    }).catch(e => console.warn('Firebase auth init failed:', e));
+} else {
+  console.warn('Firebase not loaded. Offline mode active.');
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+const ADMIN_EMAIL = 'admin@muzom.com';
+
+async function doLogin() {
+  const pass  = document.getElementById('li-pass').value.trim().toLowerCase();
+  const btn   = document.querySelector('.btn-login');
+  const errEl = document.getElementById('login-error');
+  
+  errEl.textContent = '';
+  if (!pass) { errEl.textContent = 'Şifre girin.'; return; }
+  
+  // Custom bypass for development
+  if (pass === 'olocoffee') {
+    try {
+      currentUser = { email: ADMIN_EMAIL };
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      
+      // Mock DB if offline
+      if (!window.MUZOM_DB) {
+        window.MUZOM_DB = {
+          doc: () => ({ 
+            get: async () => ({ exists: false }), 
+            set: async () => {} 
+          })
+        };
+        if (!window.MUZOM_MENU_DATA) {
+            window.MUZOM_MENU_DATA = { categories: [], products: [] };
+        }
+      }
+      
+      await loadFromDb();
+    } catch(e) {
+      console.error("Login bypass failed:", e);
+      alert("Sisteme giriş yapılırken bir hata oluştu: " + e.message);
+    }
+    return;
+  }
+  
+  // Anti-Brute Force Delay & UX
+  btn.disabled = true;
+  btn.textContent = 'Doğrulanıyor...';
+  
+  try {
+    if (!window.MUZOM_AUTH) throw new Error("Firebase bağlantısı yok. Lütfen 'olocoffee' şifresi ile çevrimdışı giriş yapın.");
+    await new Promise(r => setTimeout(r, 1000));
+    await window.MUZOM_AUTH.signInWithEmailAndPassword(ADMIN_EMAIL, document.getElementById('li-pass').value);
+    resetInactivityTimer();
+  } catch(e) {
+    errEl.textContent = e.message || 'Giriş başarısız.';
+    btn.disabled = false;
+    btn.textContent = 'Giriş Yap';
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   INACTIVITY AUTO-LOGOUT (30 Minutes)
+═══════════════════════════════════════════════ */
+let logoutTimer;
+function resetInactivityTimer() {
+  if (!currentUser) return;
+  clearTimeout(logoutTimer);
+  logoutTimer = setTimeout(() => {
+    showToast('Oturum süresi doldu.', 'error');
+    doLogout();
+  }, 30 * 60 * 1000); // 30 minutes
+}
+
+['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(name => {
+  document.addEventListener(name, resetInactivityTimer, true);
+});
+
+function doLogout() {
+  window.MUZOM_AUTH.signOut();
+}
+
+/* ═══════════════════════════════════════════════
+   DATABASE LOAD / SAVE
+═══════════════════════════════════════════════ */
+async function loadFromDb() {
+  try {
+    const snap = await window.MUZOM_DB.doc('menu/live').get();
+    if (snap.exists) {
+      const d = snap.data();
+      dataCache.categories = d.categories || [];
+      dataCache.products   = d.products   || [];
+      dataCache.settings   = d.settings   || {};
+    } else {
+      // First run — seed defaults
+      if (window.MUZOM_MENU_DATA) {
+        dataCache.categories = window.MUZOM_MENU_DATA.categories || [];
+        dataCache.products   = window.MUZOM_MENU_DATA.products   || [];
+      }
+      dataCache.settings = { restaurantName: 'Muzom', subtitle: 'Lezzet & Keyif', subtitleEn: 'Taste & Pleasure', currency: '₺' };
+      await saveToDatabase(dataCache);
+    }
+    populateSettings();
+    renderDashboard();
+    renderCategoryList();
+    renderProducts();
+    renderCategorySelects();
+    if (snap.exists && snap.data().updatedAt) {
+      const d = new Date(snap.data().updatedAt.seconds * 1000);
+      document.getElementById('db-last-update').textContent = d.toLocaleString('tr-TR');
+    }
+  } catch(e) {
+    showToast('Veritabanı yüklenemedi: ' + e.message, 'error');
+  }
+}
+
+async function saveToDatabase(data) {
+  const badge = document.getElementById('saving-badge');
+  badge.classList.add('show');
+  try {
+    await window.MUZOM_DB.doc('menu/live').set({
+      categories: data.categories,
+      products:   data.products,
+      settings:   data.settings,
+      updatedAt:  firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast('Kaydedildi ✓', 'success');
+    document.getElementById('db-last-update').textContent = new Date().toLocaleString('tr-TR');
+  } catch(e) {
+    showToast('Kaydetme hatası: ' + e.message, 'error');
+  } finally {
+    setTimeout(() => badge.classList.remove('show'), 1200);
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════ */
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b => {
+    b.classList.toggle('active', b.dataset.sec === name);
+  });
+  window.scrollTo(0, 0);
+}
+
+/* ═══════════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════════ */
+function renderDashboard() {
+  const cats    = dataCache.categories.length;
+  const prods   = dataCache.products.length;
+  const active  = dataCache.products.filter(p => p.active !== false).length;
+  const inactive = prods - active;
+  document.getElementById('stat-cats').textContent    = cats;
+  document.getElementById('stat-prods').textContent   = prods;
+  document.getElementById('stat-active').textContent  = active;
+  document.getElementById('stat-inactive').textContent = inactive;
+}
+
+/* ═══════════════════════════════════════════════
+   CATEGORIES
+═══════════════════════════════════════════════ */
+function renderCategoryList() {
+  const list = document.getElementById('cat-list');
+  const cats = [...dataCache.categories].sort((a,b) => (a.order||0)-(b.order||0));
+  if (!cats.length) { list.innerHTML = '<div style="color:var(--muted);font-size:.85rem;">Henüz kategori yok.</div>'; return; }
+  list.innerHTML = cats.map((c,i) => `
+    <div class="list-item" draggable="true" data-cat-id="${c.id}"
+         ondragstart="dragStart(event,'cat')" ondragover="dragOver(event)" ondrop="dropCat(event,'${c.id}')">
+      <span class="drag-handle"><i class="fa fa-grip-vertical"></i></span>
+      <span class="item-label">${esc(c.name)} ${c.nameEn ? '<small style="color:var(--muted)">/ '+esc(c.nameEn)+'</small>' : ''}</span>
+      <div class="item-actions">
+        <button class="btn btn-sm btn-secondary" onclick="openCatModal('${c.id}')"><i class="fa fa-pen"></i></button>
+        <button class="btn btn-sm btn-danger" onclick="deleteCategory('${c.id}')"><i class="fa fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addCategory() {
+  const name   = document.getElementById('new-cat-name').value.trim();
+  const nameEn = document.getElementById('new-cat-name-en').value.trim();
+  if (!name) { showToast('Kategori adı gerekli', 'error'); return; }
+  const id = 'cat_' + Date.now();
+  const maxOrder = dataCache.categories.reduce((m,c) => Math.max(m, c.order||0), 0);
+  dataCache.categories.push({ id, name, nameEn, order: maxOrder + 1 });
+  document.getElementById('new-cat-name').value = '';
+  document.getElementById('new-cat-name-en').value = '';
+  afterDataChange();
+}
+
+function openCatModal(id) {
+  const c = dataCache.categories.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('cm-id').value      = id;
+  document.getElementById('cm-name').value    = c.name || '';
+  document.getElementById('cm-name-en').value = c.nameEn || '';
+  document.getElementById('cat-modal-backdrop').classList.add('open');
+}
+function closeCatModal() { document.getElementById('cat-modal-backdrop').classList.remove('open'); }
+
+function saveCatEdit() {
+  const id     = document.getElementById('cm-id').value;
+  const name   = document.getElementById('cm-name').value.trim();
+  const nameEn = document.getElementById('cm-name-en').value.trim();
+  if (!name) { showToast('Ad gerekli', 'error'); return; }
+  const c = dataCache.categories.find(x => x.id === id);
+  if (!c) return;
+  c.name = name; c.nameEn = nameEn;
+  closeCatModal();
+  afterDataChange();
+}
+
+function deleteCategory(id) {
+  const c = dataCache.categories.find(x => x.id === id);
+  if (!c) return;
+  const prodCount = dataCache.products.filter(p => p.categoryId === id).length;
+  const msg = prodCount
+    ? `"${c.name}" kategorisini silmek istediğinize emin misiniz? Bu kategoride ${prodCount} ürün var, ürünler kategorisiz kalacak.`
+    : `"${c.name}" kategorisini silmek istediğinize emin misiniz?`;
+  if (!confirm(msg)) return;
+  dataCache.categories = dataCache.categories.filter(x => x.id !== id);
+  afterDataChange();
+}
+
+/* ═══════════════════════════════════════════════
+   PRODUCTS
+═══════════════════════════════════════════════ */
+function renderCategorySelects() {
+  const cats = [...dataCache.categories].sort((a,b) => (a.order||0)-(b.order||0));
+
+  // filter
+  const filter = document.getElementById('prod-filter-cat');
+  const filterVal = filter.value;
+  filter.innerHTML = '<option value="">Tüm Kategoriler</option>' +
+    cats.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  filter.value = filterVal;
+
+  // modal
+  const pm = document.getElementById('pm-cat');
+  const pmVal = pm.value;
+  pm.innerHTML = cats.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  if (pmVal) pm.value = pmVal;
+}
+
+function renderProducts() {
+  const search = (document.getElementById('prod-search').value || '').toLowerCase();
+  const catF   = document.getElementById('prod-filter-cat').value;
+  const actF   = document.getElementById('prod-filter-active').value;
+  const sortV  = document.getElementById('prod-sort').value;
+
+  let allProducts = [...dataCache.products];
+  
+  // Filter
+  if (search) allProducts = allProducts.filter(p => (p.name||'').toLowerCase().includes(search) || (p.description||'').toLowerCase().includes(search));
+  if (catF)   allProducts = allProducts.filter(p => p.categoryId === catF);
+  if (actF !== '') allProducts = allProducts.filter(p => actF === '1' ? p.active !== false : p.active === false);
+
+  const list = document.getElementById('prod-list');
+  if (!allProducts.length) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:.85rem;padding:24px 0;text-align:center;">Ürün bulunamadı.</div>';
+    return;
+  }
+
+  const catMap = {};
+  dataCache.categories.forEach(c => { catMap[c.id] = c.name; });
+
+  const isDefaultSort = sortV === 'order';
+  let html = '';
+
+  const renderSingleProd = (p) => `
+    <div class="prod-item ${p.active === false ? 'prod-inactive' : ''}" ${isDefaultSort ? 'draggable="true"' : ''} data-prod-id="${p.id}"
+         ${isDefaultSort ? `ondragstart="dragStart(event,'prod')" ondragover="dragOver(event)" ondrop="dropProd(event,'${p.id}')"` : ''}>
+      ${isDefaultSort ? '<span class="drag-handle"><i class="fa fa-grip-vertical"></i></span>' : ''}
+      ${p.image
+        ? `<img class="prod-thumb" src="${esc(p.image)}" alt="" onerror="this.style.display='none'">`
+        : `<div class="prod-thumb" style="display:flex;align-items:center;justify-content:center;"><i class="fa fa-image fa-2x" style="color:var(--muted)"></i></div>`}
+      <div class="prod-info">
+        <div class="prod-name">${esc(p.name)}</div>
+        <div class="prod-meta">
+          <span><i class="fa fa-folder-open"></i> ${esc(catMap[p.categoryId] || '—')}</span>
+          ${p.calories ? `<span><i class="fa fa-fire"></i> ${p.calories} kcal</span>` : ''}
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span class="prod-price">${p.price ? p.price+'₺' : '—'}</span>
+        <span class="badge ${p.active !== false ? 'badge-active' : 'badge-inactive'}">${p.active !== false ? 'Aktif' : 'Pasif'}</span>
+        <div style="display:flex; gap:6px;">
+          <button class="btn btn-sm btn-secondary" onclick="openProductModal('${p.id}')" title="Düzenle"><i class="fa fa-pen"></i></button>
+          <button class="btn btn-sm btn-danger" onclick="deleteProduct('${p.id}')" title="Sil"><i class="fa fa-trash"></i></button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  if (isDefaultSort) {
+    // Group by category but only show categories that have items in the filtered list
+    const sortedCats = [...dataCache.categories].sort((a,b) => (a.order||0)-(b.order||0));
+    sortedCats.forEach(cat => {
+      const catProds = allProducts.filter(p => p.categoryId === cat.id).sort((a,b) => (a.order||0)-(b.order||0));
+      if (!catProds.length) return;
+      
+      html += `<div class="cat-group-title"><i class="fa fa-chevron-right"></i> ${esc(cat.name)} <small style="margin-left:auto; opacity:0.6">${catProds.length} Ürün</small></div>`;
+      html += catProds.map(renderSingleProd).join('');
+    });
+  } else {
+    // Flat sort if user specifies something else
+    if (sortV === 'name-asc') allProducts.sort((a,b) => (a.name||'').localeCompare(b.name||'', 'tr'));
+    else if (sortV === 'name-desc') allProducts.sort((a,b) => (b.name||'').localeCompare(a.name||'', 'tr'));
+    else if (sortV === 'price-asc') allProducts.sort((a,b) => (a.price||0) - (b.price||0));
+    else if (sortV === 'price-desc') allProducts.sort((a,b) => (b.price||0) - (a.price||0));
+    
+    html = allProducts.map(renderSingleProd).join('');
+  }
+
+  list.innerHTML = html;
+}
+
+function openProductModal(id) {
+  const modal = document.getElementById('prod-modal-backdrop');
+  renderCategorySelects();
+  clearProductForm();
+  document.getElementById('prod-modal-title').textContent = id ? 'Ürün Düzenle' : 'Yeni Ürün';
+
+  if (id) {
+    const p = dataCache.products.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('pm-id').value         = p.id;
+    document.getElementById('pm-name').value        = p.name       || '';
+    document.getElementById('pm-name-en').value     = p.nameEn     || '';
+    document.getElementById('pm-desc').value        = p.description || '';
+    document.getElementById('pm-desc-en').value     = p.descriptionEn || '';
+    document.getElementById('pm-price').value       = p.price      || '';
+    document.getElementById('pm-calories').value    = p.calories   || '';
+    document.getElementById('pm-active').checked    = p.active !== false;
+    document.getElementById('pm-cat').value         = p.categoryId || '';
+    if (p.image) {
+      document.getElementById('pm-image-val').value = p.image;
+      setImgPreview(p.image);
+    }
+  }
+  modal.classList.add('open');
+}
+
+function closeProductModal() {
+  document.getElementById('prod-modal-backdrop').classList.remove('open');
+}
+
+function clearProductForm() {
+  ['pm-id','pm-name','pm-name-en','pm-desc','pm-desc-en','pm-price','pm-calories','pm-url','pm-image-val'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('pm-active').checked = true;
+  document.getElementById('pm-file').value = '';
+  document.getElementById('pm-local').value = '';
+  const wrap = document.getElementById('pm-img-preview-wrap');
+  wrap.innerHTML = '<div class="img-placeholder"><i class="fa fa-image fa-2x" style="margin-bottom:6px; display:block"></i>Görsel yok</div>';
+  setImgMode('upload');
+}
+
+function saveProduct() {
+  const name  = document.getElementById('pm-name').value.trim();
+  const catId = document.getElementById('pm-cat').value;
+  if (!name)  { showToast('Ürün adı gerekli', 'error'); return; }
+  if (!catId) { showToast('Kategori seçin', 'error'); return; }
+
+  const id = document.getElementById('pm-id').value || ('prod_' + Date.now());
+  const existing = dataCache.products.find(x => x.id === id);
+  const maxOrder = dataCache.products.reduce((m,p) => Math.max(m, p.order||0), 0);
+
+  const prod = {
+    id,
+    name,
+    nameEn:        document.getElementById('pm-name-en').value.trim(),
+    categoryId:    catId,
+    price:         parseFloat(document.getElementById('pm-price').value) || 0,
+    calories:      parseInt(document.getElementById('pm-calories').value) || 0,
+    description:   document.getElementById('pm-desc').value.trim(),
+    descriptionEn: document.getElementById('pm-desc-en').value.trim(),
+    active:        document.getElementById('pm-active').checked,
+    image:         document.getElementById('pm-image-val').value || '',
+    order:         existing ? (existing.order || maxOrder) : maxOrder + 1,
+  };
+
+  if (existing) {
+    Object.assign(existing, prod);
+  } else {
+    dataCache.products.push(prod);
+  }
+
+  closeProductModal();
+  afterDataChange();
+}
+
+function autoCalcCalories() {
+  const desc = document.getElementById('pm-desc').value;
+  const match = desc.match(/(\d+)\s*(gr|g)/i);
+  if (match) {
+    const gr = parseInt(match[1]);
+    // Rough estimate: Meat ~2.5 kcal/g, Meze ~1.5 kcal/g, Dessert ~3.5 kcal/g
+    const catId = document.getElementById('pm-cat').value;
+    let factor = 2.0; 
+    if (catId === 'cat4') factor = 2.8; // Main courses (Meat)
+    if (catId === 'cat5') factor = 3.5; // Desserts
+    if (catId === 'cat1') factor = 1.6; // Meze
+    
+    document.getElementById('pm-calories').value = Math.round(gr * factor);
+    showToast(`Gramaja göre (${gr}g) yaklaşık kalori hesaplandı.`, 'success');
+  } else {
+    showToast('Açıklama kısmında gramaj bilgisi (Örn: 200 gr) bulunamadı.', 'error');
+  }
+}
+
+function deleteProduct(id) {
+  const p = dataCache.products.find(x => x.id === id);
+  if (!p || !confirm(`"${p.name}" ürününü silmek istediğinize emin misiniz?`)) return;
+  dataCache.products = dataCache.products.filter(x => x.id !== id);
+  afterDataChange();
+}
+
+/* ═══════════════════════════════════════════════
+   IMAGE HANDLING
+═══════════════════════════════════════════════ */
+function setImgMode(mode) {
+  imgMode = mode;
+  document.querySelectorAll('.img-mode-tab').forEach((t,i) => {
+    const modes = ['upload','url','local'];
+    t.classList.toggle('active', modes[i] === mode);
+  });
+  document.querySelectorAll('.img-mode-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('img-panel-' + mode).classList.add('active');
+}
+
+function setImgPreview(src) {
+  const wrap = document.getElementById('pm-img-preview-wrap');
+  if (src) {
+    wrap.innerHTML = `<img src="${esc(src)}" alt="" onerror="this.parentNode.innerHTML='<div class=img-placeholder>Görsel yüklenemedi</div>'">`;
+  } else {
+    wrap.innerHTML = '<div class="img-placeholder"><i class="fa fa-image fa-2x" style="margin-bottom:6px; display:block"></i>Görsel yok</div>';
+  }
+}
+
+function previewUrl(val) {
+  document.getElementById('pm-image-val').value = val || '';
+  setImgPreview(val);
+}
+
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const canvas = document.getElementById('compress-canvas');
+  const ctx    = canvas.getContext('2d');
+  const img    = new Image();
+  const url    = URL.createObjectURL(file);
+  img.onload = () => {
+    const MAX = 700;
+    let w = img.width, h = img.height;
+    if (w > MAX || h > MAX) {
+      if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+      else       { w = Math.round(w * MAX / h); h = MAX; }
+    }
+    canvas.width = w; canvas.height = h;
+    ctx.drawImage(img, 0, 0, w, h);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+    document.getElementById('pm-image-val').value = dataUrl;
+    setImgPreview(dataUrl);
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+}
+
+/* ═══════════════════════════════════════════════
+   SETTINGS
+═══════════════════════════════════════════════ */
+function populateSettings() {
+  const s = dataCache.settings || {};
+  document.getElementById('set-name').value        = s.restaurantName || s.name || 'Muzom';
+  document.getElementById('set-subtitle').value    = s.subtitle   || 'Lezzet & Keyif';
+  document.getElementById('set-subtitle-en').value = s.subtitleEn || 'Taste & Pleasure';
+  document.getElementById('set-currency').value    = s.currency   || '₺';
+}
+
+function saveSettings() {
+  dataCache.settings = {
+    restaurantName: document.getElementById('set-name').value.trim(),
+    subtitle:       document.getElementById('set-subtitle').value.trim(),
+    subtitleEn:     document.getElementById('set-subtitle-en').value.trim(),
+    currency:       document.getElementById('set-currency').value.trim(),
+  };
+  afterDataChange();
+}
+
+function checkDbStatus() {
+  const dotDash = document.getElementById('db-dot-dash');
+  const txtDash = document.getElementById('db-status-text-dash');
+  const dotSet  = document.getElementById('db-dot');
+  const txtSet  = document.getElementById('db-status-text');
+
+  window.MUZOM_DB.doc('menu/live').get()
+    .then(() => {
+      if(dotDash) dotDash.className = 'dot';
+      if(txtDash) txtDash.textContent = 'Bağlı — Veritabanı çalışıyor';
+      if(dotSet)  dotSet.className  = 'dot';
+      if(txtSet)  txtSet.textContent  = 'Bağlı — Veritabanı çalışıyor';
+    })
+    .catch((e) => {
+      console.error('Veritabanı hatası:', e);
+      if(dotDash) dotDash.className = 'dot disconnected';
+      if(txtDash) txtDash.textContent = 'Bağlantı kurulamadı';
+      if(dotSet)  dotSet.className  = 'dot disconnected';
+      if(txtSet)  txtSet.textContent  = 'Bağlantı kurulamadı';
+    });
+}
+
+async function updateAdminPassword() {
+  const currPass = document.getElementById('set-curr-pass').value;
+  const newPass = document.getElementById('set-new-pass').value;
+  const confirmPass = document.getElementById('set-new-pass-confirm').value;
+
+  if (!currPass) {
+    showToast('Mevcut şifrenizi girmelisiniz.', 'error');
+    return;
+  }
+  if (!newPass || newPass.length < 6) {
+    showToast('Yeni şifre en az 6 karakter olmalıdır.', 'error');
+    return;
+  }
+  if (newPass !== confirmPass) {
+    showToast('Yeni şifreler eşleşmiyor.', 'error');
+    return;
+  }
+
+  try {
+    // Re-authenticate user before updating sensitive info
+    const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, currPass);
+    await currentUser.reauthenticateWithCredential(credential);
+    
+    await currentUser.updatePassword(newPass);
+    showToast('Şifre başarıyla güncellendi.', 'success');
+    document.getElementById('set-curr-pass').value = '';
+    document.getElementById('set-new-pass').value = '';
+    document.getElementById('set-new-pass-confirm').value = '';
+  } catch (e) {
+    console.error(e);
+    let msg = 'Hata: ' + e.message;
+    if (e.code === 'auth/wrong-password') msg = 'Mevcut şifreniz hatalı.';
+    showToast(msg, 'error');
+  }
+}
+
+function toggleSidebar() {
+  document.body.classList.toggle('sidebar-collapsed');
+  const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+  localStorage.setItem('admin_sidebar_collapsed', isCollapsed);
+}
+
+// Restore sidebar state
+if (localStorage.getItem('admin_sidebar_collapsed') === 'true') {
+  document.body.classList.add('sidebar-collapsed');
+}
+
+function resetToDefaults() {
+  if (!confirm('Tüm menü verisi VARSAYILAN haline dönecek. Emin misiniz?')) return;
+  if (!confirm('Bu işlem geri alınamaz. Devam etmek istediğinize emin misiniz?')) return;
+  if (window.MUZOM_MENU_DATA) {
+    dataCache.categories = window.MUZOM_MENU_DATA.categories || [];
+    dataCache.products   = window.MUZOM_MENU_DATA.products   || [];
+  }
+  dataCache.settings = { restaurantName: 'Muzom', subtitle: 'Lezzet & Keyif', subtitleEn: 'Taste & Pleasure', currency: '₺' };
+  afterDataChange();
+}
+
+/* ═══════════════════════════════════════════════
+   DRAG & DROP (simple index-based reorder)
+═══════════════════════════════════════════════ */
+let dragSrcId = null;
+let dragType  = null;
+
+function dragStart(e, type) {
+  dragType  = type;
+  dragSrcId = e.currentTarget.dataset[type === 'cat' ? 'catId' : 'prodId'];
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function dragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+
+function dropCat(e, targetId) {
+  e.preventDefault();
+  if (dragType !== 'cat' || dragSrcId === targetId) return;
+  const arr = dataCache.categories;
+  const srcIdx = arr.findIndex(c => c.id === dragSrcId);
+  const tgtIdx = arr.findIndex(c => c.id === targetId);
+  if (srcIdx < 0 || tgtIdx < 0) return;
+  const [item] = arr.splice(srcIdx, 1);
+  arr.splice(tgtIdx, 0, item);
+  arr.forEach((c,i) => { c.order = i + 1; });
+  afterDataChange();
+}
+
+function dropProd(e, targetId) {
+  e.preventDefault();
+  if (dragType !== 'prod' || dragSrcId === targetId) return;
+  // Only reorder within same category
+  const arr = dataCache.products;
+  const srcP = arr.find(p => p.id === dragSrcId);
+  const tgtP = arr.find(p => p.id === targetId);
+  if (!srcP || !tgtP || srcP.categoryId !== tgtP.categoryId) return;
+  const srcIdx = arr.indexOf(srcP);
+  const tgtIdx = arr.indexOf(tgtP);
+  arr.splice(srcIdx, 1);
+  arr.splice(tgtIdx, 0, srcP);
+  // Re-assign order only for this category
+  let order = 1;
+  arr.filter(p => p.categoryId === srcP.categoryId).sort((a,b) => arr.indexOf(a)-arr.indexOf(b)).forEach(p => { p.order = order++; });
+  afterDataChange();
+}
+
+/* ═══════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════ */
+function afterDataChange() {
+  renderDashboard();
+  renderCategoryList();
+  renderCategorySelects();
+  renderProducts();
+  saveToDatabase(dataCache);
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let toastTimer = null;
+function showToast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show toast-' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+// Close modal on backdrop click
+document.getElementById('prod-modal-backdrop').addEventListener('click', function(e) {
+  if (e.target === this) closeProductModal();
+});
+document.getElementById('cat-modal-backdrop').addEventListener('click', function(e) {
+  if (e.target === this) closeCatModal();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Olo Coffee | Premium Artisan Roastery</title>
+  <meta name="description" content="Olo Coffee: Zengin kahve kültürü ve premium artisan kahve çekirdekleriyle eşsiz bir kahve deneyimi.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Floating Decorations (behind everything) -->
+  <div class="decor decor-1">
+    <img src="https://cdn-icons-png.flaticon.com/512/3254/3254060.png" alt="Leaf Decor">
+  </div>
+  <div class="decor decor-2">
+    <img src="https://cdn-icons-png.flaticon.com/512/824/824641.png" alt="Coffee Bean Decor">
+  </div>
+  <div class="decor decor-3">
+    <img src="https://cdn-icons-png.flaticon.com/512/3254/3254060.png" alt="Leaf Decor">
+  </div>
+
+  <!-- Navigation -->
+  <nav class="navbar" id="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="logo">Olo Coffee.</a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html" class="active">Ana Sayfa</a>
+        <a href="index.html#story">Hikayemiz</a>
+        <a href="products.html">Menü</a>
+        <a href="#contact">İletişim</a>
+      </div>
+      <button class="mobile-menu-btn" id="mobileBtn">
+        <i class="fa fa-bars"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="hero-bg" style="background-image: url('https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&q=80&w=2000');"></div>
+    <div class="container">
+      <div class="hero-content reveal">
+        <h1>Saf Kahve,<br>Zarif Deneyim.</h1>
+        <p>Dünyanın en seçkin tarlalarından gelen çekirdekleri, yeşilin huzuru ve modern dokunuşlarla harmanlıyoruz.</p>
+        <div style="display: flex; gap: 20px; justify-content: center; margin-top: 30px;">
+          <a href="products.html" class="btn btn-primary">Menüyü Keşfet</a>
+          <a href="#story" class="btn btn-outline" style="color: white; border-color: white;">Hikayemiz</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- About / Story Section -->
+  <section class="section" id="story">
+    <div class="container">
+      <div class="about-grid reveal">
+        <div class="about-image">
+          <img src="https://images.unsplash.com/photo-1611162458324-aae1eb4129a4?auto=format&fit=crop&q=80&w=1200" alt="Barista pouring coffee">
+          <div class="about-badge">
+            <i class="fa fa-leaf about-badge-icon"></i>
+            <div>
+              <div style="font-weight: 600; color: var(--primary-dark); font-size: 1.1rem;">%100 Organik</div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">Sürdürülebilir Tarım</div>
+            </div>
+          </div>
+        </div>
+        <div class="about-text">
+          <h2 class="section-title">Doğadan Fincanınıza</h2>
+          <p>Olo Coffee, sadece bir kahve dükkanı değil; kahvenin yolculuğuna duyulan bir saygıdır. Çekirdeklerimizi dünyanın en iyi tarlalarından özenle seçiyor, kendi tesisimizde ustalıkla kavuruyoruz.</p>
+          <p>Yeşilin verdiği huzuru ve doğallığı, her yudumda hissetmeniz için en ince ayrıntıya kadar çalışıyoruz. Minimalist tasarımımız, kahvenin saf lezzetine odaklanmanızı sağlar.</p>
+          <ul style="list-style: none; margin-top: 40px;">
+            <li class="mb-3"><i class="fa fa-check" style="color: var(--accent); margin-right: 15px;"></i> Mikro kavurma teknikleri</li>
+            <li class="mb-3"><i class="fa fa-check" style="color: var(--accent); margin-right: 15px;"></i> Uzman baristalar ile butik lezzet</li>
+            <li class="mb-3"><i class="fa fa-check" style="color: var(--accent); margin-right: 15px;"></i> Çevre dostu ve geri dönüştürülebilir malzeme</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Process Section -->
+  <section class="section process-section">
+    <div class="container text-center reveal-up">
+      <h2 class="section-title">Artisan Sürecimiz</h2>
+      <p class="section-subtitle">Tarladan fincanınıza.</p>
+      
+      <div class="process-showcase">
+        <!-- Step 1 -->
+        <div class="process-row">
+          <div class="process-img reveal-left">
+            <img src="https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb?auto=format&fit=crop&q=80&w=800" alt="Seçim" loading="lazy">
+          </div>
+          <div class="process-info reveal-right">
+            <span class="process-num">01</span>
+            <h3>Özenli Seçim</h3>
+            <p>Sadece adil ticaret sertifikalı, dünyanın en saygın tarlalarından gelen %100 Arabica çekirdeklerini titizlikle seçiyoruz. Her çekirdek, lezzet profilini en üst düzeye çıkarmak için elle ayrılır.</p>
+          </div>
+        </div>
+        <!-- Step 2 -->
+        <div class="process-row reverse">
+          <div class="process-img reveal-right">
+            <img src="https://images.unsplash.com/photo-1611162458324-aae1eb4129a4?auto=format&fit=crop&q=80&w=800" alt="Kavurma" loading="lazy">
+          </div>
+          <div class="process-info reveal-left">
+            <span class="process-num">02</span>
+            <h3>Mikro Kavurma</h3>
+            <p>Kendi tesisimizde, çekirdeklerin doğal aromalarını korumak için küçük partiler halinde kavurma işlemi yapıyoruz. Ustalık gerektiren bu süreçte her kahve çekirdeğinin karakteri açığa çıkar.</p>
+          </div>
+        </div>
+        <!-- Step 3 -->
+        <div class="process-row">
+          <div class="process-img reveal-left">
+            <img src="https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&q=80&w=800" alt="Demleme" loading="lazy">
+          </div>
+          <div class="process-info reveal-right">
+            <span class="process-num">03</span>
+            <h3>Hassas Demleme</h3>
+            <p>Deneyimli baristalarımız, kahvenin en saf notalarını yakalamak için suyu, sıcaklığı ve süreyi mükemmel bir dengeyle birleştirerek sanat eserine dönüşen fincanlar sunar.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Atmosphere / Visual Section 1 -->
+  <section class="section atmosphere-section">
+    <div class="container">
+      <div class="text-center reveal-up" style="margin-bottom: 50px;">
+        <h2 class="section-title">Atmosfer</h2>
+        <p class="section-subtitle">Karmaşanın içindeki estetiklik, yeşilin ve kahvenin buluşma noktası.</p>
+      </div>
+      <div class="atmosphere-grid">
+        <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=800" alt="Coffee Shop Interior" class="img-1 reveal-up" style="transition-delay: 0s;">
+        <img src="https://images.unsplash.com/photo-1445116572660-236099ec97a0?auto=format&fit=crop&q=80&w=800" alt="Coffee Details" class="img-2 reveal-up" style="transition-delay: 0.2s;">
+        <img src="https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&q=80&w=800" alt="Plants and Coffee" class="img-3 reveal-up" style="transition-delay: 0.4s;">
+      </div>
+    </div>
+  </section>
+
+  <!-- Atmosphere / Visual Section 2 (Motto) -->
+  <section class="motto-section" style="background-image: url('https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&q=80&w=2000');">
+    <div class="motto-overlay">
+      <div class="container text-center">
+        <h2 style="font-size: 4rem; color: white; margin-bottom: 20px; line-height: 1.1;">Kendinize Zaman Ayırın.</h2>
+        <p style="color: rgba(255,255,255,0.8); font-size: 1.2rem; max-width: 500px; margin: 0 auto;">Şehrin gürültüsünden uzaklaşıp, Olo Coffee'nin minimalist dinginliğinde kaybolun.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Products Section -->
+  <section class="section featured-section">
+    <div class="container">
+      <div class="text-center reveal-up">
+        <h2 class="section-title">Öne Çıkanlar</h2>
+        <p class="section-subtitle">Olo Coffee'nin imza lezzetleri ve misafirlerimizin favorileri.</p>
+      </div>
+
+      <!-- Products Grid -->
+      <div class="featured-grid reveal-up" style="margin-top: 60px;">
+        <div class="featured-card">
+          <div class="featured-img-wrap">
+            <img src="https://images.unsplash.com/photo-1559525839-b184a4d698c7?auto=format&fit=crop&q=80&w=800" alt="Espresso Blend">
+          </div>
+          <h3>Signature Blend</h3>
+          <div class="price">240₺</div>
+        </div>
+        <div class="featured-card" style="margin-top: 40px;">
+          <div class="featured-img-wrap">
+            <img src="https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=80&w=800" alt="Matcha Latte">
+          </div>
+          <h3>Iced Matcha Latte</h3>
+          <div class="price">120₺</div>
+        </div>
+        <div class="featured-card">
+          <div class="featured-img-wrap">
+            <img src="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&q=80&w=800" alt="Ethiopia">
+          </div>
+          <h3>Ethiopia Yirgacheffe</h3>
+          <div class="price">320₺</div>
+        </div>
+      </div>
+      
+      <div class="text-center reveal-scale" style="margin-top: 80px;">
+        <a href="products.html" class="btn btn-outline">Tüm Menüyü Keşfet</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer reveal-up" id="contact">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h3>Olo Coffee.</h3>
+          <p>En kaliteli kahve çekirdeklerini minimalizm ve doğallıkla buluşturan artisan deneyim.</p>
+          <div class="social-links">
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-pinterest-p"></i></a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h4>Keşfet</h4>
+          <ul>
+            <li><a href="index.html">Ana Sayfa</a></li>
+            <li><a href="index.html#story">Hikayemiz</a></li>
+            <li><a href="products.html">Menü</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h4>İletişim</h4>
+          <ul>
+            <li><i class="fa fa-map-marker-alt" style="margin-right: 12px; color: var(--accent);"></i> Yeşilova Mah. Çınar Sok. No: 12, İstanbul</li>
+            <li><i class="fa fa-envelope" style="margin-right: 12px; color: var(--accent);"></i> hello@olocoffee.com</li>
+            <li><i class="fa fa-phone" style="margin-right: 12px; color: var(--accent);"></i> +90 (555) 123 45 67</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        &copy; 2026 Olo Coffee. Tüm hakları saklıdır.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Back to Top Button -->
+  <button class="back-to-top" id="backToTop" aria-label="Yukarı Çık">
+    <i class="fa fa-arrow-up"></i>
+  </button>
+
+  <script src="script.js"></script>
+</body>
+</html>

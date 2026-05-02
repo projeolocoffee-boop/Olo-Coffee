@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menü | Olo Coffee</title>
+  <meta name="description" content="Olo Coffee ürün menüsü. Filtre kahveler, espressolar ve özel tarifler.">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Floating Decorations -->
+  <div class="decor decor-1">
+    <img src="https://cdn-icons-png.flaticon.com/512/3254/3254060.png" alt="Leaf Decor">
+  </div>
+  <div class="decor decor-2">
+    <img src="https://cdn-icons-png.flaticon.com/512/824/824641.png" alt="Coffee Bean Decor">
+  </div>
+
+  <!-- Navigation -->
+  <nav class="navbar scrolled" id="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="logo">Olo Coffee.</a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Ana Sayfa</a>
+        <a href="index.html#story">Hikayemiz</a>
+        <a href="products.html" class="active">Menü</a>
+        <a href="#contact">İletişim</a>
+      </div>
+      <button class="mobile-menu-btn" id="mobileBtn">
+        <i class="fa fa-bars"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <div style="padding-top: 140px; background-color: var(--primary-dark); color: white; padding-bottom: 80px; text-align: center;">
+    <div class="container reveal-up">
+      <h1 style="color: white; font-size: 4rem; margin-bottom: 15px;">Koleksiyon</h1>
+      <p style="color: rgba(255,255,255,0.7); max-width: 600px; margin: 0 auto; font-weight: 300; font-size: 1.1rem;">Doğadan fincanınıza uzanan özenli seçkiyi keşfedin.</p>
+    </div>
+  </div>
+
+  <!-- Products Content -->
+  <section class="section" style="padding-top: 80px;">
+    <div class="container">
+      
+      <!-- Filters -->
+      <div class="products-filter reveal-up" id="filter-container">
+        <button class="filter-btn active" data-filter="all">Tüm Lezzetler</button>
+        <button class="filter-btn" data-filter="espresso">Espresso</button>
+        <button class="filter-btn" data-filter="filter">Filtre Kahve</button>
+        <button class="filter-btn" data-filter="cold">Soğuk İçecekler</button>
+        <button class="filter-btn" data-filter="dessert">Tatlılar</button>
+      </div>
+
+      <!-- Products Grid -->
+      <div class="products-grid reveal-up" id="products-grid">
+        <!-- Products will be injected here by JS -->
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Product Modal -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal-content">
+      <button class="modal-close" id="modalClose"><i class="fa fa-times"></i></button>
+      <div>
+        <img src="" alt="" class="modal-img" id="modalImg">
+      </div>
+      <div class="modal-info">
+        <div class="product-category" id="modalCat" style="margin-bottom: 15px;"></div>
+        <h2 class="modal-title" id="modalTitle"></h2>
+        <p class="modal-desc" id="modalDesc"></p>
+        
+        <div class="modal-meta">
+          <div class="meta-item">
+            <span class="meta-label">Kalori</span>
+            <span class="meta-value" id="modalCalories"></span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Alerjenler</span>
+            <span class="meta-value" id="modalAllergens"></span>
+          </div>
+        </div>
+        
+        <div class="modal-price" id="modalPrice"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer reveal-up" id="contact">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h3>Olo Coffee.</h3>
+          <p>En kaliteli kahve çekirdeklerini minimalizm ve doğallıkla buluşturan artisan deneyim.</p>
+          <div class="social-links">
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-pinterest-p"></i></a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h4>Keşfet</h4>
+          <ul>
+            <li><a href="index.html">Ana Sayfa</a></li>
+            <li><a href="index.html#story">Hikayemiz</a></li>
+            <li><a href="products.html">Menü</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h4>İletişim</h4>
+          <ul>
+            <li><i class="fa fa-map-marker-alt" style="margin-right: 12px; color: var(--accent);"></i> Yeşilova Mah. Çınar Sok. No: 12, İstanbul</li>
+            <li><i class="fa fa-envelope" style="margin-right: 12px; color: var(--accent);"></i> hello@olocoffee.com</li>
+            <li><i class="fa fa-phone" style="margin-right: 12px; color: var(--accent);"></i> +90 (555) 123 45 67</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        &copy; 2026 Olo Coffee. Tüm hakları saklıdır.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Back to Top Button -->
+  <button class="back-to-top" id="backToTop" aria-label="Yukarı Çık">
+    <i class="fa fa-arrow-up"></i>
+  </button>
+
+  <script src="script.js"></script>
+</body>
+</html>
