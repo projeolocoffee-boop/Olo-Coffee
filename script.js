@@ -133,12 +133,36 @@ async function fetchMenuData() {
           };
         });
     } else {
-      console.log("No live menu found in database.");
+      console.log("No live menu found in database. Using local defaults.");
+      useLocalDefaults();
     }
   } catch (error) {
-    console.error("Error fetching menu data:", error);
+    console.error("Error fetching menu data. Using local defaults:", error);
+    useLocalDefaults();
   } finally {
     renderProductsGrid();
+  }
+}
+
+function useLocalDefaults() {
+  if (window.MUZOM_MENU_DATA) {
+    categories = window.MUZOM_MENU_DATA.categories || [];
+    products = (window.MUZOM_MENU_DATA.products || [])
+      .filter(p => p.active !== false)
+      .map(p => {
+        const cat = categories.find(c => c.id === p.categoryId);
+        return {
+          id: p.id,
+          category: cat ? cat.nameEn.toLowerCase().replace(/\s+/g, '-') : 'other',
+          categoryName: cat ? cat.name : 'Diğer',
+          title: p.name,
+          desc: p.description,
+          price: p.price,
+          image: p.image,
+          calories: p.calories ? p.calories + ' kcal' : '—',
+          allergens: p.allergens || 'Yok'
+        };
+      });
   }
 }
 

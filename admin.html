@@ -993,11 +993,20 @@ async function loadFromDb() {
         dataCache.categories = window.MUZOM_MENU_DATA.categories || [];
         dataCache.products   = window.MUZOM_MENU_DATA.products   || [];
       }
-      dataCache.settings = { restaurantName: 'Muzom', subtitle: 'Lezzet & Keyif', subtitleEn: 'Taste & Pleasure', currency: '₺' };
+      dataCache.settings = { restaurantName: 'Olo Coffee', subtitle: 'Premium Artisan Roastery', subtitleEn: 'Premium Artisan Roastery', currency: '₺' };
       await saveToDatabase(dataCache);
     }
-    populateSettings();
-    renderDashboard();
+  } catch(e) {
+    console.warn("Could not load from DB. Falling back to local defaults. Error:", e);
+    if (window.MUZOM_MENU_DATA) {
+      dataCache.categories = window.MUZOM_MENU_DATA.categories || [];
+      dataCache.products   = window.MUZOM_MENU_DATA.products   || [];
+    }
+    dataCache.settings = { restaurantName: 'Olo Coffee', subtitle: 'Premium Artisan Roastery', subtitleEn: 'Premium Artisan Roastery', currency: '₺' };
+  }
+  
+  populateSettings();
+  renderDashboard();
     renderCategoryList();
     renderProducts();
     renderCategorySelects();

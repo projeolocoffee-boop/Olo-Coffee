@@ -1,10 +1,10 @@
 // Initial Menu Data for Seeding
 window.MUZOM_MENU_DATA = {
   categories: [
-    { id: 'cat_1', name: 'Espresso', nameEn: 'Espresso', order: 1 },
-    { id: 'cat_2', name: 'Filtre Kahve', nameEn: 'Filter Coffee', order: 2 },
-    { id: 'cat_3', name: 'Soğuk İçecek', nameEn: 'Cold Drinks', order: 3 },
-    { id: 'cat_4', name: 'Tatlı', nameEn: 'Desserts', order: 4 }
+    { id: 'cat_1', name: 'Espresso', nameEn: 'espresso', order: 1 },
+    { id: 'cat_2', name: 'Filtre Kahve', nameEn: 'filter', order: 2 },
+    { id: 'cat_3', name: 'Soğuk İçecekler', nameEn: 'cold', order: 3 },
+    { id: 'cat_4', name: 'Tatlılar', nameEn: 'dessert', order: 4 }
   ],
   products: [
     {
