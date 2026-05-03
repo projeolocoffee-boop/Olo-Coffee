@@ -13,6 +13,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 // Global references for Admin Panel (MUZOM suffix is used in your admin.html)
-window.MUZOM_AUTH = firebase.auth();
-window.MUZOM_DB = firebase.firestore();
-window.MUZOM_STORAGE = firebase.storage();
+if (typeof firebase.auth === 'function') window.MUZOM_AUTH = firebase.auth();
+if (typeof firebase.firestore === 'function') window.MUZOM_DB = firebase.firestore();
+if (typeof firebase.storage === 'function') window.MUZOM_STORAGE = firebase.storage();
