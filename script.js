@@ -9,10 +9,25 @@ if (mobileBtn && navLinks) {
     if (navLinks.classList.contains('active')) {
       icon.classList.remove('fa-bars');
       icon.classList.add('fa-times');
+      mobileBtn.style.color = 'var(--primary-dark)';
     } else {
       icon.classList.remove('fa-times');
       icon.classList.add('fa-bars');
+      mobileBtn.style.color = '';
     }
+  });
+
+  const navLinksItems = navLinks.querySelectorAll('a');
+  navLinksItems.forEach(item => {
+    item.addEventListener('click', () => {
+      if (navLinks.classList.contains('active')) {
+        navLinks.classList.remove('active');
+        const icon = mobileBtn.querySelector('i');
+        icon.classList.remove('fa-times');
+        icon.classList.add('fa-bars');
+        mobileBtn.style.color = '';
+      }
+    });
   });
 }
 
